@@ -1,0 +1,59 @@
+ void Update()
+    {
+     if(GetVolume() > volumeThreshold && GetVolume() < 100 && jumping == false && volumnes.Count < 10 && isELF == false)
+        {
+            float instantVolume = ((volumeThreshold+GetVolume()/100*50-15) * volumeFactor);
+            //OnJump(instantVolume);
+            Debug.Log("GetVolume: " + GetVolume());
+            volumnes.Add(instantVolume);
+
+            if (volumnes.Count >= 6)
+            {
+                volumnes.Sort();
+                for (int i = 0; i < volumnes.Count; i++)
+                    print(volumnes[i]);
+                //volumnes.Reverse();
+                float averageVolume = volumnes[4];
+                Debug.Log("Average Volume: " + averageVolume);
+                OnJump(averageVolume);
+                volumnes.Clear();
+            }
+        }
+    }
+    
+     private float GetVolume()
+    {
+        if (Microphone.IsRecording(null))
+        {
+            int sampleSize = 1024;
+            float[] samples = new float[sampleSize];
+            int offset = Microphone.GetPosition(device) - sampleSize + 1;
+
+            if (offset < 0)
+            {
+                return 0;
+            }
+
+            micRecord.GetData(samples, offset);
+            float levelMax = 0;
+            float effectVolume = 0;
+            for (int i = 0; i < sampleSize; i++)
+            {
+                /*if (samples[i] * 100 >= volumeThreshold)
+                {
+                    effectVolume++;
+                    levelMax+= samples[i];
+                }*/
+
+                float wavePeak = samples[i];
+
+                if (levelMax < wavePeak)
+                {
+                    levelMax = wavePeak;
+                }
+            }
+            //if (effectVolume>0)
+            return levelMax * 100;
+        }
+        return 0;
+    }
